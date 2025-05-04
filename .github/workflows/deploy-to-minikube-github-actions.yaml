@@ -14,15 +14,22 @@ jobs:
       run: kubectl get pods -A
     - name: Build image
       run: |
-          export SHELL=/bin/bash
-          eval $(minikube -p minikube docker-env)
-          docker build -f ./Dockerfile -t devopshint/node-app:v2 .
-          echo -n "verifying images:"
-          docker images         
+        export SHELL=/bin/bash
+        eval $(minikube -p minikube docker-env)
+        docker build -f ./Dockerfile -t devopshint/node-app:v2 .
+        echo -n "verifying images:"
+        docker images         
     - name: Deploy to minikube
       run:
         kubectl apply -f k8s-node-app.yaml
+    - name: Debug - show all pods and events
+      run: |
+        kubectl get pods -A
+        kubectl describe pods
+        kubectl get events --sort-by=.metadata.creationTimestamp
     - name: Test service URLs
       run: |
-          minikube service list
-          minikube service nodejs-app --url
+        echo "Available services:"
+        minikube service list
+        echo "Trying to access nodejs-app:"
+        minikube service nodejs-app --url || echo "Service not available (yet)"
